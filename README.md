@@ -1,4 +1,4 @@
-# gloo-solo-istio
+# k8s-istio-demos
 
 Common functions for manipulating Istio clusters, Gloo Platform, and Solo.io
 builds
@@ -18,15 +18,17 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | DESIR
 ```
 
 Some commands require `istioctl` (though I've tried my best to limit them).
-Here is an example of how to install istioctl version 1.25.3
 
 ```bash
 mkdir $HOME/.istioctl/bin
 PATH=$HOME/.istioctl/bin:$PATH
 
-curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.25.3 sh -
+istio_ver=1.28
+istio_ver_min=1.28.4
 
-cp istio-1.25.3/bin/istioctl $HOME/.istioctl/bin/istioctl-1.25
+curl -L https://istio.io/downloadIstio | ISTIO_VERSION=$istio_ver_min sh -
+
+cp istio-${istio_ver_min}/bin/istioctl $HOME/.istioctl/bin/istioctl-${istio_ver}
 ```
 
 # Usage
