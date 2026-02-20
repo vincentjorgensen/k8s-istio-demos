@@ -297,6 +297,14 @@ export MESH_ID=${MESH_ID:-$DEFAULT_MESH_ID}
 export ISTIO_PEER_AUTH_MODE="STRICT" # STRICT, PERMISSIVE, UNSET, DISABLED (not allowed for ztunnel)
 export SIDECAR_INJECTOR_WEBHOOKS_ENABLED=${SIDECAR_INJECTOR_WEBHOOKS_ENABLED:-false}
 
+# OSS Istio 1.26
+export ISTIO_VER_126_OSS=$ISTIO_VER_126
+export ISTIO_REPO_126_OSS=$ISTIO_REPO_PUB
+export HELM_REPO_126_OSS=$HELM_REPO_PUB
+export ISTIO_FLAVOR_126_OSS=''
+export ISTIO_DISTRO_126_OSS=$ISTIO_DISTRO_GEN
+export REVISION_126_OSS=$REVISION_GEN
+
 # OSS Istio 1.27
 export ISTIO_VER_127_OSS=$ISTIO_VER_127
 export ISTIO_REPO_127_OSS=$ISTIO_REPO_PUB
@@ -706,11 +714,11 @@ function gsi_init {
     echo '#' Rate-limiter is enabled
   fi
   #----------------------------------------------------------------------------
-  # Solo Prometheus
+  # Solo.io Prometheus
   #----------------------------------------------------------------------------
   if $PROMETHEUS_ENABLED; then
     PROMETHEUS_FLAG=enabled
-    echo '#' Solo Prometheus is enabled
+    echo '#' Solo.io Prometheus is enabled
   fi
 
   #############################################################################
