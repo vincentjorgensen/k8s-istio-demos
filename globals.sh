@@ -405,7 +405,7 @@ export GLOOUI_SERVICE_TYPE=${GLOOUI_SERVICE_TYPE:-LoadBalancer}
 export GME_FLAG GME_MGMT_AGENT_FLAG GLOOUI_FLAG
 
 ###############################################################################
-# Gloo Solo Istio (GSI)
+# GSI mode variables
 ###############################################################################
 #-------------------------------------------------------------------------------
 # Current cluster identifiers

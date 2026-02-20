@@ -1,7 +1,6 @@
 # k8s-istio-demos
 
-Common functions for manipulating Istio clusters, Gloo Platform, and Solo.io
-builds
+Lightweight (citation needed) tool for creating k8s clusters runnng istio demos
 
 # Requirements
 

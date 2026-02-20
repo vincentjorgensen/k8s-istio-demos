@@ -3,8 +3,8 @@
   "SigningAlgorithm":"SHA256WITHRSA",
   "Subject": {
     "Country":"US",
-    "Organization":"Solo.io",
-    "OrganizationalUnit":"Customer Success",
+    "Organization":"DVE",
+    "OrganizationalUnit":"Development",
     "State":"CA",
     "Locality":"Sunnyvale",
     "CommonName":"Root CA"
