@@ -43,9 +43,9 @@ function exec_issuer_ingress_gateways {
                 -s "$CERT_MANAGER_INGRESS_SECRET"                             \
                 -c "US"                                                       \
                 -l "Sunnyvale"                                                \
-                -o "Solo IO"                                                  \
+                -o "DVE"                                                      \
                 -p "CA"                                                       \
-                -u "Customer Success"
+                -u "Development"      
 }
 
 function exec_issuer_istio_ingress_gateway {
