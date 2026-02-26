@@ -171,13 +171,6 @@ export PROMETHEUS_ENABLED=${PROMETHEUS_ENABLED:-false}
 export HTTP_FLAG HTTPS_FLAG INGRESS_GATEWAY_CLASS PROMETHEUS_FLAG
 
 #-------------------------------------------------------------------------------
-# Gloo Mesh Gateway (GMG)
-#-------------------------------------------------------------------------------
-export GLOO_MESH_GATEWAY_ENABLED=${GLOO_MESH_GATEWAY_ENABLED:-false}
-export GLOO_MESH_GATEWAY_VER=2.10.0
-export GLOO_MESH_GATEWAY_FLAG
-
-#-------------------------------------------------------------------------------
 # K8s Gateway API
 #-------------------------------------------------------------------------------
 export GATEWAY_API_EXP_CRDS_ENABLED=${GATEWAY_API_EXP_CRDS_ENABLED:-false}
@@ -186,6 +179,22 @@ export GATEWAY_API_VER=v1.4.0
 export GATEWAY_API_EXP_VER=v1.4.0
 export GATEWWAY_API_CRDS_URL=https://github.com/kubernetes-sigs/gateway-api/releases/download
 export GATEWAY_API_EXP_CRDS_FLAG
+
+#-------------------------------------------------------------------------------
+# Traefik
+#-------------------------------------------------------------------------------
+export TRAEFIK_ENABLED=${TRAEFIK_ENABLED:-false}
+export TRAEFIK_HELM_REPO=traefik
+export TRAEFIK_NAMESPACE=traefik
+export TRAEFIK_VER=39.0.2
+export TRAEFIK_FLAG
+
+#-------------------------------------------------------------------------------
+# Gloo Mesh Gateway (GMG)
+#-------------------------------------------------------------------------------
+export GLOO_MESH_GATEWAY_ENABLED=${GLOO_MESH_GATEWAY_ENABLED:-false}
+export GLOO_MESH_GATEWAY_VER=2.10.0
+export GLOO_MESH_GATEWAY_FLAG
 
 #-------------------------------------------------------------------------------
 # Eastwest Gateway Settings
@@ -651,6 +660,16 @@ function gsi_init {
   # Gateways
   #############################################################################
   #----------------------------------------------------------------------------
+  # Traefik
+  #----------------------------------------------------------------------------
+  if $TRAEFIK_ENABLED; then
+    GATEWAY_API_ENABLED=true
+    INGRESS_ENABLED=true
+    INGRESS_GATEWAY_CLASS=traefik
+    TRAEFIK_FLAG=enabled
+    echo '# '"Traefik for ingress is enabled"
+  fi
+  #----------------------------------------------------------------------------
   # Gloo Mesh Gateway (GMG)
   #----------------------------------------------------------------------------
   if $GLOO_MESH_GATEWAY_ENABLED; then
@@ -1063,6 +1082,7 @@ function _jinja2_values {
          -D spire_secret="$SPIRE_SECRET"                                       \
          -D tldn="$TLDN"                                                       \
          -D tls_termination_enabled="$TLS_TERMINATION_FLAG"                    \
+         -D traefik_enabled="$TRAEFIK_FLAG"                                    \
          -D traffic_policy="$TRAFFIC_POLICY"                                   \
          -D utils_namespace="$UTILS_NAMESPACE"                                 \
          -D vault_namespace="$VAULT_NAMESPACE"                                 \

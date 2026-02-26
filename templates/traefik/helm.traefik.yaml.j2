@@ -1,0 +1,14 @@
+---
+providers:
+  kubernetesGateway:
+    enabled: true
+ports:
+  http:
+    port: {{ ingress_http_port }}
+{%- if https_enabled %}
+  https:
+    port: {{ ingress_https_port }}
+##    tls:
+##      enabled: true
+{%- endif %}
+...

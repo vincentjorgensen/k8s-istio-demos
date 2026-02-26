@@ -1,7 +1,7 @@
+---
 {%- if ingress_gateway_class == "kgateway" 
     or ingress_gateway_class == "gloo-gateway"
     or ingress_gateway_class == "gloo-gateway-v2" %}
----
 {%-   if ingress_gateway_class == "kgateway" %}
 apiVersion: gateway.kgateway.dev/v1alpha1
 kind: GatewayParameters

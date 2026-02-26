@@ -10,7 +10,7 @@ GSI_DECK=(
 
   app_init_namespaces
 
-  # CRDs
+  # K8s Gateway API CRDs
   app_init_gateway_api
 
   # Cloud infrastructure
@@ -33,6 +33,10 @@ GSI_DECK=(
   app_init_gloo_gateway_v2
   app_init_kgateway
   app_init_gme_workspaces
+  app_init_traefik
+
+  # Finalize Gateway Ingress
+  app_init_ingress
 
   # Test applications
   app_init_helloworld

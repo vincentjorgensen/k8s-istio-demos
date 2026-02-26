@@ -32,18 +32,6 @@ function exec_gloo_gateway_v2_control_plane {
   local _manifest="$MANIFESTS/helm.gloo-gateway-v2.${GSI_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gloo-gateway-v2/helm.values.yaml.j2
 
-  local _k_label="=ambient"
-
-  if ! is_create_mode; then
-    _k_label="-"
-  fi
-
-  if $AMBIENT_ENABLED; then
-    $DRY_RUN kubectl label namespace "$INGRESS_NAMESPACE"                      \
-    "istio.io/dataplane-mode${_k_label}"                                       \
-    --context "$GSI_CONTEXT" --overwrite
-  fi
- 
   _make_manifest "$_template" > "$_manifest"
 
   if is_create_mode; then
