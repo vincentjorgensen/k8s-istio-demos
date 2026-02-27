@@ -2,7 +2,11 @@
 *.pem
 *.csr
 *.bak
-certs/
+certs/*/*
+certs/*.conf
+certs/*.csr
+certs/*.pem
+certs/*.srl
 samples/
 manifests/
 replays/
