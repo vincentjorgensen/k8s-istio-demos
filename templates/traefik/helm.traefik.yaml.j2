@@ -2,13 +2,30 @@
 providers:
   kubernetesGateway:
     enabled: true
+  kubernetesIngress:
+    enabled: false
 ports:
-  http:
+  web:
     port: {{ ingress_http_port }}
+    expose:
+      default: true
+    exposedPort: {{ ingress_http_port }}
+    protocol: TCP
 {%- if https_enabled %}
-  https:
+  websecure:
     port: {{ ingress_https_port }}
-##    tls:
-##      enabled: true
+    expose:
+      default: true
+    exposedPort: {{ ingress_https_port }}
+    protocol: TCP
+    allowACMEByPass: false
+    http:
+      tls:
+        enabled: true
+        options: ""
+        certResolver: ""
+        domains: []
 {%- endif %}
+gateway:
+  enabled: false
 ...

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 function app_init_traefik {
   if $TRAEFIK_ENABLED; then
-    $ITER_MC_1 exec_traefik
     $ITER_MC_1 exec_traefik_rbac
+    $ITER_MC_1 exec_traefik
   fi
 }
 

@@ -185,7 +185,7 @@ export GATEWAY_API_EXP_CRDS_FLAG
 #-------------------------------------------------------------------------------
 export TRAEFIK_ENABLED=${TRAEFIK_ENABLED:-false}
 export TRAEFIK_HELM_REPO=traefik
-export TRAEFIK_NAMESPACE=traefik
+export TRAEFIK_NAMESPACE=ingress-gateways
 export TRAEFIK_VER=39.0.2
 export TRAEFIK_FLAG
 
