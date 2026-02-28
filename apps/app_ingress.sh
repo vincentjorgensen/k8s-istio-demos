@@ -5,6 +5,8 @@ function app_init_ingress {
 }
 
 function exec_enmesh_ingress_namespace {
+  local _k_label="=ambient"
+
   if ! is_create_mode; then
     _k_label="-"
   fi

@@ -112,6 +112,16 @@ function dry_run_e {
   DRY_RUN='echo' eval "$*"
 }
 
+function rew_e {
+  local _exec="$*"
+  GSI_MODE='delete' eval "$*"
+}
+
+function play_e {
+  local _exec="$*"
+  GSI_MODE='apply' eval "$*"
+}
+
 function _strip_license_keys {
   local _manifests=$1
   local _file

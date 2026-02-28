@@ -1,4 +1,7 @@
 ---
+logs:
+  general:
+    level: DEBUG
 providers:
   kubernetesGateway:
     enabled: true
@@ -28,4 +31,22 @@ ports:
 {%- endif %}
 gateway:
   enabled: false
+service:
+  enabled: true
+  type: LoadBalancer
+{%- if aws_enabled %}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "ingress-gateway.{{ network }}.{{ tldn }}"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    service.beta.kubernetes.io/aws-load-balancer-name: "ingress-gateway-{{ network }}"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: ip
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+{%-   if https_enabled %}
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-west-2:103739863673:certificate/64893fb2-f334-4c85-8f05-c0c42a637e19
+    service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "{{ https_port }}"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-negotiation-policy: "ELBSecurityPolicy-TLS13-1-2-2021-06"
+{%-   endif %}
+  labels:
+    target-workload: gateway
+{%- endif %}
 ...
