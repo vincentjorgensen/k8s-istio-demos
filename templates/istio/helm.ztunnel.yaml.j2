@@ -19,11 +19,11 @@ env:
 {%- if docker_desktop_enabled %}
 resources:
   limits:
-    cpu: 10m
-    memory: 128Mi
+    cpu: 5m
+    memory: 96Mi
   requests:
-    cpu: 1m
-    memory: 2Mi
+    cpu: 3m
+    memory: 20Mi
 {%- endif %}
 {%- if spire_enabled %}
 spire:

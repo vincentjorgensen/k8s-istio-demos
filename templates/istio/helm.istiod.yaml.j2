@@ -78,11 +78,11 @@ meshConfig:
 {%- if docker_desktop_enabled %}
 resources:
   limits:
-    cpu: 20m
-    memory: 256Mi
+    cpu: 10m
+    memory: 96Mi
   requests:
-    cpu: 2m
-    memory: 64Mi
+    cpu: 3m
+    memory: 48Mi
 autoscaleMin: 1
 autoscaleMax: 1
 {%- endif %}
