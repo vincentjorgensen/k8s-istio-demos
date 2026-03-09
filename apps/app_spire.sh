@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_spire {
   if $SPIRE_ENABLED; then
+    echo '# '"$0"
     exec_spire_secrets
     exec_spire_crds
     exec_spire_server

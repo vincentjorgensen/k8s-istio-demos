@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_gme {
   if $GME_ENABLED; then
+    echo '# '"$0"
     create_gme_secrets -x "$GSI_MGMT_CONTEXT" -c "$GSI_MGMT_CLUSTER"
     exec_gloo_platform_crds -x "$GSI_MGMT_CONTEXT"
     exec_gloo_mgmt_server
@@ -34,6 +35,7 @@ function app_init_gme {
 
 function app_init_gme_workspaces {
   if $GME_ENABLED; then
+    echo '# '"$0"
     create_namespace "$GSI_MGMT_CONTEXT" "${GME_GATEWAYS_WORKSPACE}-config"
     create_gloo_workspace -w "$GME_GATEWAYS_WORKSPACE"                        \
                           -n "$EASTWEST_NAMESPACE" -n "$INGRESS_NAMESPACE"    \

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_istio {
   if $ISTIO_ENABLED; then
+    echo '# '"$0"
     if $AWS_PCA_ENABLED && $CERT_MANAGER_ENABLED; then
       $ITER_MC app_init_acmpca
     else

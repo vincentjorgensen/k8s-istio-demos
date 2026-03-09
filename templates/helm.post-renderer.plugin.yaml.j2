@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+type: postrenderer/v1
+name: {{ plugin_name }}
+version: 0.1.0
+runtime: subprocess
+runtimeConfig:
+  platformCommand:
+    - command: {{ manifest_dir }}/{{ plugin_name }}/kustomize.sh
+...

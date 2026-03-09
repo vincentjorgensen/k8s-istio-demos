@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 function app_init_helloworld {
   if $HELLOWORLD_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_helloworld
   fi
 
   if $REMOTE_HELLOWORLD_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_remote_helloworld
   fi
 }

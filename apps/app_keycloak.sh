@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_keycloak {
   if $KEYCLOAK_ENABLED; then
+    echo '# '"$0"
     exec_keycloak
     exec_initialize_keycloak
   fi

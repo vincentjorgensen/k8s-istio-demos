@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 function app_init_httpbin {
   if $HTTPBIN_ENABLED; then
-     $ITER_MC exec_httpbin
+    echo '# '"$0"
+    $ITER_MC exec_httpbin
  fi
 }
 

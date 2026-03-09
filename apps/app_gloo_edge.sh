@@ -1,5 +1,6 @@
 function app_init_gloo_edge {
   if $GLOO_EDGE_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_gloo_edge
 
     if $GME_ENABLED; then

@@ -1,5 +1,6 @@
 function app_init_gloo_gateway_v1 {
   if $GLOO_GATEWAY_V1_ENABLED; then
+    echo '# '"$0"
     $ITER_MC_1 exec_gloo_gateway_v1
   fi
 }

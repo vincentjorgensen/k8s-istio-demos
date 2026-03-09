@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 function app_init_utils {
   if $UTILS_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_utils
   fi
 }
 
 function app_init_netshoot {
   if $NETSHOOT_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_netshoot
   fi
 }
 
 function app_init_curl {
   if $CURL_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_curl
   fi
 }

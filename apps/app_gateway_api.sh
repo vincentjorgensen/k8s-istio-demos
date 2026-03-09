@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 function app_init_gateway_api {
   if $GATEWAY_API_ENABLED; then 
+    echo '# '"$0"
     $ITER_MC exec_gateway_api_crds 
   fi
 }
 
 function app_init_ingress_gateway_api {
   if $GATEWAY_API_ENABLED; then 
+    echo '# '"$0"
     if $INGRESS_ENABLED; then
       if $KEYCLOAK_ENABLED; then
         if $KGATEWAY_ENABLED; then
@@ -22,6 +24,7 @@ function app_init_ingress_gateway_api {
 
 function app_init_eastwest_gateway_api {
   if $GATEWAY_API_ENABLED && $MULTICLUSTER_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_eastwest_gateway_api
 
     $ITER_MC exec_eastwest_link_gateway_api

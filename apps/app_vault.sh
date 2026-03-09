@@ -3,6 +3,7 @@
 
 function app_init_vault {
   if $VAULT_ENABLED; then
+    echo '# '"$0"
     exec_vault
   fi
 }

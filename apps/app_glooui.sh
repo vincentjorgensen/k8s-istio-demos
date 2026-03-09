@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_glooui {
   if $GLOOUI_ENABLED; then
+    echo '# '"$0"
     exec_glooui_gloo_platform_crds
     exec_glooui_gloo_platform
     exec_istio_base

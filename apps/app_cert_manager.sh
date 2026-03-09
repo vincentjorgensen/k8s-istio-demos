@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_cert_manager {
   if $CERT_MANAGER_ENABLED; then
+    echo '# '"$0"
     $ITER_MC exec_cert_manager
   fi
 }

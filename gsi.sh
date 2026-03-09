@@ -10,49 +10,17 @@ GSI_DECK=(
 
   app_init_namespaces
 
-  # K8s Gateway API CRDs
-  app_init_gateway_api
-
-  # Cloud infrastructure
-  app_init_aws
-
   # Infrastructure apps
-  app_init_vault
-  app_init_external_dns
-  app_init_spire
-  app_init_cert_manager
-  app_init_keycloak
-  app_init_gme
-  app_init_glooui
-  app_init_istio
+  app_choose_infra
 
   # Gateway controllers
-  app_init_istio_gateway
-  app_init_gloo_edge
-  app_init_gloo_gateway_v1
-  app_init_gloo_gateway_v2
-  app_init_kgateway
-  app_init_gme_workspaces
-  app_init_traefik
-
-  # Finalize Gateway Ingress
-  app_init_ingress
+  app_choose_gateway
 
   # Test applications
-  app_init_helloworld
-  app_init_curl
-  app_init_utils
-  app_init_netshoot
-  app_init_httpbin
+  app_choose_apps
 
   # Ingresses and Egresses
-  app_init_istio_gateway
-  app_init_gloo_edge
-  app_init_eastwest_gateway_api
-  app_init_ingress_gateway_api
-
-  # Routing
-  app_init_routing
+  app_choose_ingresses
 )
 
 function play_gsi {

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 function app_init_kgateway {
   if $KGATEWAY_ENABLED; then
+    echo '# '"$0"
     exec_kgateway_crds
     exec_kgateway_control_plane
   
