@@ -14,6 +14,6 @@ function exec_enmesh_ingress_namespace {
   if $AMBIENT_ENABLED; then
     $DRY_RUN kubectl label namespace "$INGRESS_NAMESPACE"                      \
     "istio.io/dataplane-mode${_k_label}"                                       \
-    --context "$GSI_CONTEXT" --overwrite
+    --context "$KSA_CONTEXT" --overwrite
   fi
 }

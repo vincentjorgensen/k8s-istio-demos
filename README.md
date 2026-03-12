@@ -35,6 +35,24 @@ cp istio-${istio_ver_min}/bin/istioctl $HOME/.istioctl/bin/istioctl-${istio_ver}
 
 # Usage
 
+A running kubernetes cluster is required. For local development, I use k3d on
+Docker Desktop (or Rancher Desktop). See my other repo
+[k3d-calico-metallb](https://github.com/vincentjorgensen/k3d-calico-metallb)
+for how I instantiate clusters locally.
+
+Assuming there is cluster named `cluster1`:
 ```bash
-source ./functions.sh
+source ./ksa.sh
+
+ksa_play c1_traefik
 ```
+
+will deploy a Traefik ingress gateway in Gateway API to the cluster with the
+sample `helloworld` app behind it. To test if the gateway works, try:
+```bash
+curl -H 'Host: helloworld.example.com' $(kubectl --namespace ingress-gateways get svc traefik -ojsonpath='{.status.loadBalancer.ingress[].ip}')
+```
+```text
+Hello, world!
+```
+

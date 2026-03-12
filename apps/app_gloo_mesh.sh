@@ -2,19 +2,19 @@
 function app_init_gme {
   if $GME_ENABLED; then
     echo '# '"$0"
-    create_gme_secrets -x "$GSI_MGMT_CONTEXT" -c "$GSI_MGMT_CLUSTER"
-    exec_gloo_platform_crds -x "$GSI_MGMT_CONTEXT"
+    create_gme_secrets -x "$KSA_MGMT_CONTEXT" -c "$KSA_MGMT_CLUSTER"
+    exec_gloo_platform_crds -x "$KSA_MGMT_CONTEXT"
     exec_gloo_mgmt_server
-    exec_istio_base -x "$GSI_MGMT_CONTEXT" -c "$GSI_MGMT_CLUSTER"
+    exec_istio_base -x "$KSA_MGMT_CONTEXT" -c "$KSA_MGMT_CLUSTER"
 
-    if [[ $GSI_MGMT_CLUSTER != "$GSI_CLUSTER" ]]; then
+    if [[ $KSA_MGMT_CLUSTER != "$KSA_CLUSTER" ]]; then
       # First Workload cluster
       exec_gloo_k8s_cluster 
       create_gme_secrets
       exec_gloo_platform_crds
       exec_gloo_agent
     else
-      create_gloo_k8s_cluster -x "$GSI_MGMT_CONTEXT" -c "$GSI_MGMT_CLUSTER"
+      create_gloo_k8s_cluster -x "$KSA_MGMT_CONTEXT" -c "$KSA_MGMT_CLUSTER"
     fi
 
     if $MULTICLUSTER_ENABLED; then
@@ -28,7 +28,7 @@ function app_init_gme {
     fi
 
 ###    if $GME_ENABLED; then
-###      create_namespace "$GSI_MGMT_CONTEXT" "$GME_NAMESPACE"
+###      create_namespace "$KSA_MGMT_CONTEXT" "$GME_NAMESPACE"
 ###    fi
   fi
 }
@@ -36,17 +36,17 @@ function app_init_gme {
 function app_init_gme_workspaces {
   if $GME_ENABLED; then
     echo '# '"$0"
-    create_namespace "$GSI_MGMT_CONTEXT" "${GME_GATEWAYS_WORKSPACE}-config"
+    create_namespace "$KSA_MGMT_CONTEXT" "${GME_GATEWAYS_WORKSPACE}-config"
     create_gloo_workspace -w "$GME_GATEWAYS_WORKSPACE"                        \
                           -n "$EASTWEST_NAMESPACE" -n "$INGRESS_NAMESPACE"    \
-                          -c "$GSI_CLUSTER" -c "$GSI_REMOTE_CLUSTER"
+                          -c "$KSA_CLUSTER" -c "$KSA_REMOTE_CLUSTER"
 
-    create_namespace "$GSI_MGMT_CONTEXT" "${GME_APPLICATIONS_WORKSPACE}-config"
+    create_namespace "$KSA_MGMT_CONTEXT" "${GME_APPLICATIONS_WORKSPACE}-config"
     create_gloo_workspace -w "$GME_APPLICATIONS_WORKSPACE"                    \
                           -n "$HELLOWORLD_NAMESPACE"                          \
                           -n "$HTTPBIN_NAMESPACE"                             \
                           -n "$CURL_NAMESPACE"                                \
-                          -c "$GSI_CLUSTER" -c "$GSI_REMOTE_CLUSTER"
+                          -c "$KSA_CLUSTER" -c "$KSA_REMOTE_CLUSTER"
 
     create_gloo_workspacesettings -w "$GME_GATEWAYS_WORKSPACE"                \
                           -i "$GME_APPLICATIONS_WORKSPACE"                    \
@@ -59,8 +59,8 @@ function app_init_gme_workspaces {
 }
 
 function create_gme_secrets {
-  local _context=$GSI_CONTEXT
-  local _cluster=$GSI_CLUSTER
+  local _context=$KSA_CONTEXT
+  local _cluster=$KSA_CLUSTER
 
   while getopts "c:x:" opt; do
     # shellcheck disable=SC2220
@@ -77,13 +77,13 @@ function create_gme_secrets {
 
   _make_manifest "$_template" > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
   --context "$_context"                                                        \
   -f "$_manifest"
 }
 
 function exec_gloo_platform_crds {
-  local _context=$GSI_CONTEXT
+  local _context=$KSA_CONTEXT
 
   while getopts "x:" opt; do
     # shellcheck disable=SC2220
@@ -103,13 +103,13 @@ function exec_gloo_platform_crds {
     --wait
   else
     $DRY_RUN helm uninstall gloo-platform-crds                                \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace="$GME_NAMESPACE"        
   fi
 }
 
 function exec_gloo_mgmt_server {
-  local _manifest="$MANIFESTS/helm.gloo-mesh-mgmt-server.${GSI_MGMT_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.gloo-mesh-mgmt-server.${KSA_MGMT_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gloo-mesh/helm.values-server.yaml.j2
 
   if is_create_mode; then
@@ -117,25 +117,25 @@ function exec_gloo_mgmt_server {
 
     $DRY_RUN helm upgrade -i gloo-platform-mgmt gloo-platform/gloo-platform    \
     --version="$GME_VER"                                                       \
-    --kube-context="$GSI_MGMT_CONTEXT"                                         \
+    --kube-context="$KSA_MGMT_CONTEXT"                                         \
     --namespace="$GME_NAMESPACE"                                               \
     --values "$_manifest"                                                      \
     --wait
 
-    echo '#'"GSI_MGMT_CONTEXT=$GSI_MGMT_CONTEXT"
-    echo '#'"GSI_MGMT_CLUSTER=$GSI_MGMT_CLUSTER"
+    echo '#'"KSA_MGMT_CONTEXT=$KSA_MGMT_CONTEXT"
+    echo '#'"KSA_MGMT_CLUSTER=$KSA_MGMT_CLUSTER"
   else
     $DRY_RUN helm uninstall gloo-platform-mgmt                                 \
-    --kube-context="$GSI_MGMT_CONTEXT"                                         \
+    --kube-context="$KSA_MGMT_CONTEXT"                                         \
     --namespace="$GME_NAMESPACE"        
   fi
 
-  _wait_for_pods "$GSI_MGMT_CONTEXT" "$GME_NAMESPACE" gloo-mesh-mgmt-server
-  _wait_for_pods "$GSI_MGMT_CONTEXT" "$GME_NAMESPACE" gloo-mesh-ui
+  _wait_for_pods "$KSA_MGMT_CONTEXT" "$GME_NAMESPACE" gloo-mesh-mgmt-server
+  _wait_for_pods "$KSA_MGMT_CONTEXT" "$GME_NAMESPACE" gloo-mesh-ui
 }
 
 function exec_gloo_k8s_cluster {
-  local _manifest="$MANIFESTS"/gloo-mesh.k8s_cluster."${GSI_CLUSTER}".yaml
+  local _manifest="$MANIFESTS"/gloo-mesh.k8s_cluster."${KSA_CLUSTER}".yaml
   local _template="$TEMPLATES"/gloo-mesh/k8s_cluster.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -162,21 +162,21 @@ function create_gloo_k8s_cluster {
 }
 
 function exec_gloo_agent {
-  local _manifest="$MANIFESTS/helm.gloo-agent.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.gloo-agent.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gloo-mesh/helm.values-agent.yaml.j2             
 
   GLOO_MESH_SERVER=$(kubectl get svc gloo-mesh-mgmt-server                    \
-    --context "$GSI_MGMT_CONTEXT"                                             \
+    --context "$KSA_MGMT_CONTEXT"                                             \
     --namespace="$GME_NAMESPACE"                                              \
     -o=jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 
   GLOO_MESH_TELEMETRY_GATEWAY=$(kubectl get svc gloo-telemetry-gateway        \
-    --context "$GSI_MGMT_CONTEXT"                                             \
+    --context "$KSA_MGMT_CONTEXT"                                             \
     --namespace="$GME_NAMESPACE"                                              \
     -o=jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 
   if is_create_mode; then
-    jinja2 -D cluster_name="$GSI_CLUSTER"                                     \
+    jinja2 -D cluster_name="$KSA_CLUSTER"                                     \
            -D verbose="$GME_VERBOSE"                                          \
            -D insights_enabled="true"                                         \
            -D analyzer_enabled="true"                                         \
@@ -189,19 +189,19 @@ function exec_gloo_agent {
 
     $DRY_RUN helm upgrade -i gloo-platform-agent gloo-platform/gloo-platform  \
     --version="$GME_VER"                                                      \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace="$GME_NAMESPACE"                                              \
     --values "$_manifest"                                                     \
     --wait
   else
     $DRY_RUN helm uninstall gloo-platform-agent gloo-platform-crds            \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace="$GME_NAMESPACE"        
   fi
 
   if is_create_mode; then
     $DRY_RUN kubectl wait                                                     \
-    --context "$GSI_CONTEXT"                                                  \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$GME_NAMESPACE"                                              \
     --for=condition=Ready pods --all
   fi
@@ -220,7 +220,7 @@ function create_gloo_virtual_destination {
     esac
   done
 
-  local _manifest="$MANIFESTS"/gloo-mesh.virtualdestination."${_service_name}"."${_workspace_name}"."${GSI_CLUSTER}".yaml
+  local _manifest="$MANIFESTS"/gloo-mesh.virtualdestination."${_service_name}"."${_workspace_name}"."${KSA_CLUSTER}".yaml
   local _template="$TEMPLATES"/gloo-mesh/virtualdestination.manifest.yaml.j2
 
   jinja2 -D workspace="$_workspace_name"                                      \
@@ -230,8 +230,8 @@ function create_gloo_virtual_destination {
          "$_template"                                                         \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_MGMT_CONTEXT"                                               \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_MGMT_CONTEXT"                                               \
   -f "$_manifest" 
 }
 
@@ -250,49 +250,49 @@ function create_gloo_route_table {
 
   echo "sn $_service_name"
 
-  local _manifest="$MANIFESTS/gloo-mesh.routetable.${_workspace_name}.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gloo-mesh.routetable.${_workspace_name}.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES/gloo-mesh/routetable.manifest.yaml"
 
   jinja2 -D workspace="$_workspace_name"                                      \
          -D app_service_name="$_service_name"                                 \
-         -D mgmt_cluster="$GSI_MGMT_CLUSTER"                                  \
+         -D mgmt_cluster="$KSA_MGMT_CLUSTER"                                  \
          -D gateways_workspace="$GME_GATEWAYS_WORKSPACE"                      \
          -D tldn="$TLDN"                                                      \
          "$_template"                                                         \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_MGMT_CONTEXT"                                               \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_MGMT_CONTEXT"                                               \
   -f "$_manifest" 
 }
 
 function exec_gloo_virtual_gateway {
-  local _manifest="$MANIFESTS"/gloo-mesh.virtualgateway."${GSI_CLUSTER}".yaml
+  local _manifest="$MANIFESTS"/gloo-mesh.virtualgateway."${KSA_CLUSTER}".yaml
   local _template="$TEMPLATES"/gloo-mesh/virtualgateway.manifest.yaml.j2   
 
   jinja2 -D gateways_workspace="$GME_GATEWAYS_WORKSPACE"                      \
-         -D ingress_gateway_cluster_name="$GSI_GATEWAY_CLUSTER"               \
+         -D ingress_gateway_cluster_name="$KSA_GATEWAY_CLUSTER"               \
          -D gateways_namespace="$INGRESS_NAMESPACE"                           \
          -D tldn="$TLDN"                                                      \
          "$_template"                                                         \
     > "$_manifest"
 
-  create_namespace "$GSI_MGMT_CONTEXT" "$GME_GATEWAYS_WORKSPACE"-config
+  create_namespace "$KSA_MGMT_CONTEXT" "$GME_GATEWAYS_WORKSPACE"-config
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_MGMT_CONTEXT"                                               \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_MGMT_CONTEXT"                                               \
   -f "$_manifest" 
 }
 
 function exec_root_trust_policy {
-  local _manifest="$MANIFESTS/gloo.root-trust-policy.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gloo.root-trust-policy.${KSA_CLUSTER}.yaml"
 
   jinja2 -D gme_namespace="$GME_NAMESPACE"                                    \
          "$TEMPLATES"/gloo.root-trust-policy.manifest.yaml                    \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_CONTEXT"                                                    \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_CONTEXT"                                                    \
   -f "$_manifest" 
 }
 
@@ -313,7 +313,7 @@ function create_gloo_workspacesettings {
     esac
   done
 
-  local _manifest="$MANIFESTS/gloo-mesh.workspacesettings.${_workspace_name}.${GSI_MGMT_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gloo-mesh.workspacesettings.${_workspace_name}.${KSA_MGMT_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gloo-mesh/workspacesettings.manifest.yaml.j2
 
   echo "import_workspaces:" >> "$_ztemp"
@@ -333,8 +333,8 @@ function create_gloo_workspacesettings {
          "$_ztemp".yaml                                                       \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_MGMT_CONTEXT"                                               \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_MGMT_CONTEXT"                                               \
   -f "$_manifest" 
 }
 
@@ -356,7 +356,7 @@ function create_gloo_workspace {
     esac
   done
 
-  local _manifest="$MANIFESTS/gloo-mesh.workspace.${_workspace_name}.${GSI_MGMT_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gloo-mesh.workspace.${_workspace_name}.${KSA_MGMT_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gloo-mesh/workspace.manifest.yaml.j2
 
   echo "namespaces:" >> "$_ztemp"
@@ -373,12 +373,12 @@ function create_gloo_workspace {
 
   jinja2 -D name="$_workspace_name"                                           \
          -D namespace="$GME_NAMESPACE"                                        \
-         -D mgmt_cluster="$GSI_MGMT_CLUSTER"                                  \
+         -D mgmt_cluster="$KSA_MGMT_CLUSTER"                                  \
          "$_template"                                                         \
          "$_ztemp".yaml                                                       \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_MGMT_CONTEXT"                                               \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_MGMT_CONTEXT"                                               \
   -f "$_manifest" 
 }

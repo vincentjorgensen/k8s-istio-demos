@@ -17,23 +17,23 @@ function app_init_istio {
 function exec_istio_secrets {
   if is_create_mode; then
     $DRY_RUN kubectl create secret generic "$ISTIO_SECRET"                     \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$ISTIO_NAMESPACE"                                             \
-    --from-file="$CERTS"/"$GSI_CLUSTER"/ca-cert.pem                            \
-    --from-file="$CERTS"/"$GSI_CLUSTER"/ca-key.pem                             \
-    --from-file="$CERTS"/"$GSI_CLUSTER"/root-cert.pem                          \
-    --from-file="$CERTS"/"$GSI_CLUSTER"/cert-chain.pem
+    --from-file="$CERTS"/"$KSA_CLUSTER"/ca-cert.pem                            \
+    --from-file="$CERTS"/"$KSA_CLUSTER"/ca-key.pem                             \
+    --from-file="$CERTS"/"$KSA_CLUSTER"/root-cert.pem                          \
+    --from-file="$CERTS"/"$KSA_CLUSTER"/cert-chain.pem
   else
-    $DRY_RUN kubectl "$GSI_MODE" secret cacerts                                \
-    --context "$GSI_CONTEXT"                                                   \
+    $DRY_RUN kubectl "$KSA_MODE" secret cacerts                                \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$ISTIO_NAMESPACE"
   fi
 }
 
 function exec_istio_awspca_secrets {
-  local _manifest="$MANIFESTS"/certificate.cert-manager."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/certificate.cert-manager."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/certificate.cert-manager.manifest.yaml.j2
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   jinja2 -D awspca_component="istio"                                          \
          -D awspca_issuer="$AWSPCA_ISSUER"                                    \
@@ -43,14 +43,14 @@ function exec_istio_awspca_secrets {
          "$_j2"                                                               \
   > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_CONTEXT"                                                    \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_CONTEXT"                                                    \
   -f "$_manifest"
 }
 
 function exec_istio_base {
-  local _cluster=$GSI_CLUSTER
-  local _context=$GSI_CONTEXT
+  local _cluster=$KSA_CLUSTER
+  local _context=$KSA_CONTEXT
 
   while getopts "c:x:" opt; do
     # shellcheck disable=SC2220
@@ -84,7 +84,7 @@ function exec_istio_base {
 }
 
 function exec_istio_istiod {
-  local _manifest="$MANIFESTS/helm.istiod.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.istiod.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/istio/helm.istiod.yaml.j2
 
   if is_create_mode; then
@@ -92,19 +92,19 @@ function exec_istio_istiod {
 
     $DRY_RUN helm upgrade --install istiod "$HELM_REPO"/istiod                \
     --version "${ISTIO_VER}${ISTIO_FLAVOR}"                                   \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$ISTIO_NAMESPACE"                                     \
     --values "$_manifest"                                                     \
     --wait
   else
     $DRY_RUN helm uninstall istiod                                            \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$ISTIO_NAMESPACE"
   fi
 }
 
 function exec_istio_cni {
-  local _manifest="$MANIFESTS/helm.istio-cni.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.istio-cni.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/istio/helm.istio-cni.yaml.j2
 
   if is_create_mode; then
@@ -112,19 +112,19 @@ function exec_istio_cni {
 
     $DRY_RUN helm upgrade --install istio-cni "$HELM_REPO"/cni                \
     --version "${ISTIO_VER}${ISTIO_FLAVOR}"                                   \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$ISTIO_NAMESPACE"                                     \
     --values "$_manifest"                                                     \
     --wait
   else
     $DRY_RUN helm uninstall istio-cni                                         \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$ISTIO_NAMESPACE"
   fi
 }
 
 function exec_istio_ztunnel {
-  local _manifest="$MANIFESTS/helm.ztunnel.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.ztunnel.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/istio/helm.ztunnel.yaml.j2
 
   if is_create_mode; then
@@ -132,19 +132,19 @@ function exec_istio_ztunnel {
 
     $DRY_RUN helm upgrade --install ztunnel "$HELM_REPO"/ztunnel               \
     --version "${ISTIO_VER}${ISTIO_FLAVOR}"                                    \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$ISTIO_NAMESPACE"                                             \
     --values "$_manifest"                                                      \
     --wait
   else
     $DRY_RUN helm uninstall ztunnel                                            \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$ISTIO_NAMESPACE"
   fi
 }
 
 function exec_telemetry_defaults {
-  local _manifest="$MANIFESTS"/telemetry.istio-system."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/telemetry.istio-system."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/istio/telemetry.istio-system.manifest.yaml
 
   cp "$_template"                                                              \
@@ -154,14 +154,14 @@ function exec_telemetry_defaults {
 }
 
 function exec_istio {
-  local _k_label="=$GSI_NETWORK"
+  local _k_label="=$KSA_NETWORK"
 
   if ! is_create_mode; then
     _k_label="-"
   fi
 
   if $MULTICLUSTER_ENABLED; then
-    _label_namespace "$ISTIO_NAMESPACE" "topology.istio.io/network" "$GSI_NETWORK"
+    _label_namespace "$ISTIO_NAMESPACE" "topology.istio.io/network" "$KSA_NETWORK"
   fi
 
   exec_istio_base
@@ -171,18 +171,18 @@ function exec_istio {
 
   if is_create_mode; then
     $DRY_RUN kubectl wait                                                      \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$ISTIO_NAMESPACE"                                             \
     --for=condition=Ready pods --all
   fi
 }
 
 function exec_peer_authentication {
-  local _manifest="$MANIFESTS"/istio.peer_authentication."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/istio.peer_authentication."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/istio/peer_authentication.manifest.yaml.j2
 
   if [[ $ISTIO_PEER_AUTH_MODE == STRICT ]]; then
-    _label_namespace "$ISTIO_NAMESPACE" "topology.istio.io/network" "$GSI_NETWORK"
+    _label_namespace "$ISTIO_NAMESPACE" "topology.istio.io/network" "$KSA_NETWORK"
   fi
 
   _make_manifest "$_template" > "$_manifest"

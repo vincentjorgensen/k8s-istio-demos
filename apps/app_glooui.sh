@@ -14,20 +14,20 @@ function exec_glooui_gloo_platform_crds {
     $DRY_RUN helm upgrade -i gloo-platform-crds                                \
                              gloo-platform/gloo-platform-crds                  \
     --version="$GME_VER"                                                       \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace="$GLOO_SYSTEM_NAMESPACE"                                       \
     --create-namespace                                                         \
     --set installEnterpriseCrds=false                                          \
     --wait
   else
     $DRY_RUN helm uninstall gloo-platform-crds                                 \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace="$GLOO_SYSTEM_NAMESPACE"
   fi
 }
 
 function exec_glooui_gloo_platform {
-  local _manifest="$MANIFESTS/helm.gloo-platform.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.gloo-platform.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/helm.gloo-platform.yaml.j2
 
   if is_create_mode; then
@@ -35,15 +35,15 @@ function exec_glooui_gloo_platform {
 
     $DRY_RUN helm upgrade -i gloo-platform gloo-platform/gloo-platform         \
     --version="$GME_VER"                                                       \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace="$GLOO_SYSTEM_NAMESPACE"                                       \
     --values "$_manifest"                                                      \
     --wait
   else
     $DRY_RUN helm uninstall gloo-platform                                      \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace="$GLOO_SYSTEM_NAMESPACE"
   fi
 
-  _wait_for_pods "$GSI_CONTEXT" "$GLOO_SYSTEM_NAMESPACE" gloo-mesh-ui
+  _wait_for_pods "$KSA_CONTEXT" "$GLOO_SYSTEM_NAMESPACE" gloo-mesh-ui
 }

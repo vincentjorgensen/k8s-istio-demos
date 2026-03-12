@@ -285,12 +285,12 @@ EOF
 function create_aws_pca_issuer_role {
   local _cmd; _cmd=$(mktemp)
   local _component=$1
-  local _policy_manifest="$MANIFESTS/aws.AWSPCAIssuerPolicy.${_component}.${GSI_CLUSTER}.json"
+  local _policy_manifest="$MANIFESTS/aws.AWSPCAIssuerPolicy.${_component}.${KSA_CLUSTER}.json"
   local _policy_template="$TEMPLATES"/aws/AWSPCAIssuerPolicy.json.j2
-  local _assume_manifest="$MANIFESTS/aws.AWSPCAAssumeRole.${_component}.${GSI_CLUSTER}.json"
+  local _assume_manifest="$MANIFESTS/aws.AWSPCAAssumeRole.${_component}.${KSA_CLUSTER}.json"
   local _assume_template="$TEMPLATES"/aws/AWSPCAAssumeRole.json.j2
-  local _policy_arn="$MANIFESTS/AWSPCAIssuerPolicy.${_component}.${GSI_CLUSTER}.arn"
-  local _assume_arn="$MANIFESTS/AWSPCAAssumeRole.${_component}.${GSI_CLUSTER}.arn"
+  local _policy_arn="$MANIFESTS/AWSPCAIssuerPolicy.${_component}.${KSA_CLUSTER}.arn"
+  local _assume_arn="$MANIFESTS/AWSPCAAssumeRole.${_component}.${KSA_CLUSTER}.arn"
 
   local _partition _account_id _oidc_issuer
 
@@ -299,7 +299,7 @@ function create_aws_pca_issuer_role {
   _oidc_issuer=$(aws eks describe-cluster                                     \
   --profile "$AWS_PROFILE"                                                    \
   --region "$AWS_REGION"                                                      \
-  --name "$GSI_CLUSTER"                                                       |
+  --name "$KSA_CLUSTER"                                                       |
   jq -r '.cluster.identity.oidc.issuer'                                       |
   sed -e 's;https://\(.*\);\1;')
 
@@ -322,7 +322,7 @@ function create_aws_pca_issuer_role {
 AWS_PCA_POLICY_ARN=\$(aws iam create-policy                                   \\
   --profile "\$AWS_PROFILE"                                                   \\
   --region "\$AWS_REGION"                                                     \\
-  --policy-name AWSPCAIssuerPolicy-"$_component-$GSI_CLUSTER-$UTAG"          \\
+  --policy-name AWSPCAIssuerPolicy-"$_component-$KSA_CLUSTER-$UTAG"          \\
   --policy-document file://"$_policy_manifest"                               \\
   --output json                                                             |\\
   jq -r '.Policy.Arn')
@@ -332,7 +332,7 @@ echo -n \$AWS_PCA_POLICY_ARN > "$_policy_arn"
 AWS_PCA_ROLE_ARN=\$(aws iam create-role                                       \\
   --profile "\$AWS_PROFILE"                                                   \\
   --region "\$AWS_REGION"                                                     \\
-  --role-name "$GSI_CLUSTER"-pca-issuer                                      \\
+  --role-name "$KSA_CLUSTER"-pca-issuer                                      \\
   --assume-role-policy-document file://"$_assume_manifest"                   \\
   --output json                                                             |\\
   jq -r '.Role.Arn')
@@ -343,7 +343,7 @@ aws iam attach-role-policy                                                   \\
   --profile "\$AWS_PROFILE"                                                   \\
   --region "\$AWS_REGION"                                                     \\
   --policy-arn "\$AWS_PCA_POLICY_ARN"                                         \\
-  --role-name "$GSI_CLUSTER"-pca-issuer
+  --role-name "$KSA_CLUSTER"-pca-issuer
 EOF
   else
     cat <<EOF >> "$_cmd"
@@ -351,12 +351,12 @@ aws iam detach-role-policy                                                   \\
   --profile "\$AWS_PROFILE"                                                   \\
   --region "\$AWS_REGION"                                                     \\
   --policy-arn "\$AWS_PCA_POLICY_ARN"                                         \\
-  --role-name "$GSI_CLUSTER"-pca-issuer
+  --role-name "$KSA_CLUSTER"-pca-issuer
 
 aws iam delete-role                                                          \\
   --profile "\$AWS_PROFILE"                                                   \\
   --region "\$AWS_REGION"                                                     \\
-  --role-name "$GSI_CLUSTER"-pca-issuer
+  --role-name "$KSA_CLUSTER"-pca-issuer
 
 aws iam delete-policy                                                        \\
   --profile "\$AWS_PROFILE"                                                   \\
@@ -369,13 +369,13 @@ EOF
 }
 
 function exec_aws_pca_serviceaccount {
-    $DRY_RUN kubectl "$GSI_MODE" serviceaccount aws-pca-issuer                \
-    --context "$GSI_CONTEXT"                                                  \
+    $DRY_RUN kubectl "$KSA_MODE" serviceaccount aws-pca-issuer                \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$CERT_MANAGER_NAMESPACE"
 
     $DRY_RUN kubectl annotate serviceaccount aws-pca-issuer                   \
     "eks.amazonaws.com/role-arn=${AWS_PCA_ROLE_ARN}"                          \
-    --context "$GSI_CONTEXT"                                                  \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$CERT_MANAGER_NAMESPACE"
 }
 
@@ -383,7 +383,7 @@ function exec_aws_pca_privateca_issuer {
   if is_create_mode; then
     $DRY_RUN helm upgrade --install aws-pca-issuer awspca/aws-privateca-issuer \
     --version "$AWSPCA_ISSUER_VER"                                            \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$CERT_MANAGER_NAMESPACE"                                     \
     --set serviceAccount.create=false                                         \
     --set serviceAccount.name="aws-pca-issuer"                                \
@@ -392,14 +392,14 @@ function exec_aws_pca_privateca_issuer {
     --wait
   else
     $DRY_RUN helm uninstall aws-pca-issuer                                    \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$CERT_MANAGER_NAMESPACE"
   fi
 
   if is_create_mode; then
     $DRY_RUN sleep 1
     $DRY_RUN kubectl wait                                                     \
-    --context "$GSI_CONTEXT"                                                  \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$CERT_MANAGER_NAMESPACE"                                     \
     --for=condition=Ready pods -l app=aws-pca-issuer
   fi
@@ -419,7 +419,7 @@ function create_aws_pca_issuer {
         _namespace=$OPTARG ;;
     esac
   done
-  local _manifest="$MANIFESTS"/aws.awspca_issuer."$_component"."$_namespace"."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/aws.awspca_issuer."$_component"."$_namespace"."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/aws/awspca_issuer.manifest.yaml.j2
   export AWSPCA_ISSUER="aws-pca-issuer-${_component}"
   export AWSPCA_ISSUER_KIND="AWSPCAIssuer"
@@ -431,8 +431,8 @@ function create_aws_pca_issuer {
          "$_template"                                                          \
   > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
-  --context "$GSI_CONTEXT"                                                     \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
+  --context "$KSA_CONTEXT"                                                     \
   -f "$_manifest"
 }
 
@@ -451,7 +451,7 @@ function create_aws_pca_cluster_issuer {
     esac
   done
 
-  local _manifest="$MANIFESTS"/aws.awspca_cluster_issuer."$_component"."$_namespace"."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/aws.awspca_cluster_issuer."$_component"."$_namespace"."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/aws/awspca_cluster_issuer.manifest.yaml.j2
   export AWSPCA_ISSUER="aws-pca-cluster-issuer-${_component}"
   export AWSPCA_ISSUER_KIND="AWSPCAClusterIssuer"
@@ -463,14 +463,14 @@ function create_aws_pca_cluster_issuer {
          "$_template"                                                          \
   > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_CONTEXT"                                                    \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_CONTEXT"                                                    \
   -f "$_manifest"
 }
 # END
 
 function exec_cognito_route_option {
-  local _manifest="$MANIFESTS"/aws.route_option.cognitio."$GSI_CLUSTER".yaml
+  local _manifest="$MANIFESTS"/aws.route_option.cognitio."$KSA_CLUSTER".yaml
   local _template="$TEMPLATES"/aws/route_options.cognito.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"

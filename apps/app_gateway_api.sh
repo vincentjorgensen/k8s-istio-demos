@@ -33,7 +33,7 @@ function app_init_eastwest_gateway_api {
 
 function exec_gateway_api_crds {
   local _gateway_api_ver
-  if ! kubectl --context "$GSI_CONTEXT" get crds|grep -q gateways.gateway.networking.k8s.io; then
+  if ! kubectl --context "$KSA_CONTEXT" get crds|grep -q gateways.gateway.networking.k8s.io; then
     # Install either experimental or standard
     if $GATEWAY_API_ENABLED && $GATEWAY_API_EXP_CRDS_ENABLED; then
       exec_gateway_api_experimental_crds
@@ -43,7 +43,7 @@ function exec_gateway_api_crds {
   else
     _gateway_api_ver=$(
       kubectl get crd gateways.gateway.networking.k8s.io                       \
-        --context "$GSI_CONTEXT" -ojson                                       |\
+        --context "$KSA_CONTEXT" -ojson                                       |\
       jq -r '.metadata.annotations | ."gateway.networking.k8s.io/bundle-version" , ."gateway.networking.k8s.io/channel"' |\
       tr '\n' ' '                                                             |\
       sed -e 's/ /-/'
@@ -54,14 +54,14 @@ function exec_gateway_api_crds {
 
 function exec_gateway_api_standard_crds {
   if is_create_mode; then
-    $DRY_RUN kubectl "$GSI_MODE"                                               \
-    --context "$GSI_CONTEXT"                                                   \
+    $DRY_RUN kubectl "$KSA_MODE"                                               \
+    --context "$KSA_CONTEXT"                                                   \
     -f "$GATEWWAY_API_CRDS_URL"/"$GATEWAY_API_VER"/standard-install.yaml
   fi
 
   if ! is_create_mode; then
-    $DRY_RUN kubectl "$GSI_MODE"                                               \
-    --context "$GSI_CONTEXT"                                                   \
+    $DRY_RUN kubectl "$KSA_MODE"                                               \
+    --context "$KSA_CONTEXT"                                                   \
     -f "$GATEWWAY_API_CRDS_URL"/"$GATEWAY_API_VER"/standard-install.yaml
   fi
 }
@@ -69,27 +69,27 @@ function exec_gateway_api_standard_crds {
 function exec_gateway_api_experimental_crds {
   if is_create_mode; then
     $DRY_RUN kubectl apply                                                   \
-    --context "$GSI_CONTEXT"                                                 \
+    --context "$KSA_CONTEXT"                                                 \
     --server-side=true                                                       \
     -f "$GATEWWAY_API_CRDS_URL"/"$GATEWAY_API_EXP_VER"/experimental-install.yaml
   fi
 
   if ! is_create_mode; then
-    $DRY_RUN kubectl "$GSI_MODE"                                               \
-    --context "$GSI_CONTEXT"                                                   \
+    $DRY_RUN kubectl "$KSA_MODE"                                               \
+    --context "$KSA_CONTEXT"                                                   \
     -f "$GATEWWAY_API_CRDS_URL"/"$GATEWAY_API_EXP_VER"/experimental-install.yaml
   fi
 }
 
 function exec_httproute {
-  local _manifest="$MANIFESTS/gateway-api.httproute.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gateway-api.httproute.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gateway-api/httproute.manifest.yaml.j2
 
   jinja2                                                                       \
          -D namespace="$INGRESS_NAMESPACE"                                     \
-         -D service="$GSI_APP_SERVICE_NAME"                                    \
-         -D service_namespace="$GSI_APP_SERVICE_NAMESPACE"                     \
-         -D service_port="$GSI_APP_SERVICE_PORT"                               \
+         -D service="$KSA_APP_SERVICE_NAME"                                    \
+         -D service_namespace="$KSA_APP_SERVICE_NAMESPACE"                     \
+         -D service_port="$KSA_APP_SERVICE_PORT"                               \
          "$_template"                                                          \
          "$(_get_j2)"                                                          \
   > "$_manifest"
@@ -113,7 +113,7 @@ function create_httproute {
     esac
   done
 
-  local _manifest="$MANIFESTS/gateway-api.httproute.${_service_name}.${_namespace}.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/gateway-api.httproute.${_service_name}.${_namespace}.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gateway-api/httproute.manifest.yaml.j2
 
   jinja2                                                                       \
@@ -134,9 +134,9 @@ function create_httproute {
 }
 
 function exec_eastwest_gateway_api {
-  local _ew_manifest="$MANIFESTS/gateway-api.eastwest_gateway.${GSI_CLUSTER}.yaml"
+  local _ew_manifest="$MANIFESTS/gateway-api.eastwest_gateway.${KSA_CLUSTER}.yaml"
   local _ew_template="$TEMPLATES"/gateway-api/eastwest_gateway.gateway.manifest.yaml.j2
-  local _pa_manifest="$MANIFESTS/gateway-api.eastwest_parameters.${GSI_CLUSTER}.yaml"
+  local _pa_manifest="$MANIFESTS/gateway-api.eastwest_parameters.${KSA_CLUSTER}.yaml"
   local _pa_template="$TEMPLATES"/gateway-api/eastwest_parameters.gateway.manifest.yaml.j2
 
   _make_manifest "$_pa_template" > "$_pa_manifest"
@@ -145,7 +145,7 @@ function exec_eastwest_gateway_api {
   _apply_manifest "$_pa_manifest"
   _apply_manifest "$_ew_manifest"
 
-  _wait_for_pods "$GSI_CONTEXT" "$EASTWEST_NAMESPACE" "$EASTWEST_GATEWAY"
+  _wait_for_pods "$KSA_CONTEXT" "$EASTWEST_NAMESPACE" "$EASTWEST_GATEWAY"
 }
 
 function exec_eastwest_link_gateway_api {
@@ -153,13 +153,13 @@ function exec_eastwest_link_gateway_api {
   local _template="$TEMPLATES"/gateway-api/eastwest_remote_gateway.manifest.yaml.j2
   local _remote_address _address_type
 
-  for cluster in $(env|ggrep GSI_CLUSTER|sed -e 's/GSI_CLUSTER\(.*\)=.*/\1/'); do
-    if ! [[ "$GSI_CLUSTER" == "$(eval echo '$'GSI_CLUSTER"${cluster}")" ]]; then
+  for cluster in $(env|ggrep KSA_CLUSTER|sed -e 's/KSA_CLUSTER\(.*\)=.*/\1/'); do
+    if ! [[ "$KSA_CLUSTER" == "$(eval echo '$'KSA_CLUSTER"${cluster}")" ]]; then
      
       _remote_address=$(
         $DRY_RUN kubectl get svc "$EASTWEST_GATEWAY"                           \
         --namespace "$EASTWEST_NAMESPACE"                                      \
-        --context "$(eval echo '$'GSI_CONTEXT"${cluster}")"                    \
+        --context "$(eval echo '$'KSA_CONTEXT"${cluster}")"                    \
         -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
 
       if is_create_mode; then
@@ -167,7 +167,7 @@ function exec_eastwest_link_gateway_api {
           _remote_address=$(
             $DRY_RUN kubectl get svc "$EASTWEST_GATEWAY"                       \
             --namespace "$EASTWEST_NAMESPACE"                                  \
-            --context "$(eval echo '$'GSI_CONTEXT"${cluster}")"                \
+            --context "$(eval echo '$'KSA_CONTEXT"${cluster}")"                \
             -o jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}")
           echo -n '.' && sleep 5
         done && echo
@@ -179,8 +179,8 @@ function exec_eastwest_link_gateway_api {
         _address_type=Hostname
       fi
   
-      _j2="$MANIFESTS"/jinja2_globals."$(eval echo '$'GSI_CLUSTER"${cluster}")".yaml
-      _manifest="$MANIFESTS/gateway_api.eastwest_remote_gateway.remote-$(eval echo '$'GSI_CONTEXT"${cluster}").${GSI_CLUSTER}.yaml"
+      _j2="$MANIFESTS"/jinja2_globals."$(eval echo '$'KSA_CLUSTER"${cluster}")".yaml
+      _manifest="$MANIFESTS/gateway_api.eastwest_remote_gateway.remote-$(eval echo '$'KSA_CONTEXT"${cluster}").${KSA_CLUSTER}.yaml"
       jinja2                                                                   \
              -D address_type="$_address_type"                                  \
              -D remote_address="$_remote_address"                              \
@@ -195,11 +195,11 @@ function exec_eastwest_link_gateway_api {
 }
 
 function exec_ingress_gateway_api {
-  local _in_manifest="$MANIFESTS/gateway-api.ingress_gateway.${GSI_CLUSTER}.yaml"
+  local _in_manifest="$MANIFESTS/gateway-api.ingress_gateway.${KSA_CLUSTER}.yaml"
   local _in_template="$TEMPLATES"/gateway-api/ingress_gateway.gateway.manifest.yaml.j2
-  local _pa_manifest="$MANIFESTS/gateway-api.ingress_parameters.${GSI_CLUSTER}.yaml"
+  local _pa_manifest="$MANIFESTS/gateway-api.ingress_parameters.${KSA_CLUSTER}.yaml"
   local _pa_template="$TEMPLATES"/gateway-api/ingress_parameters.gateway.manifest.yaml.j2
-  local _te_manifest="$MANIFESTS/gateway-api.telemetry.${GSI_CLUSTER}.yaml"
+  local _te_manifest="$MANIFESTS/gateway-api.telemetry.${KSA_CLUSTER}.yaml"
   local _te_template="$TEMPLATES"/gateway-api/telemetry.gateway.manifest.yaml.j2
 
   _label_ns_for_istio "$INGRESS_NAMESPACE"
@@ -208,15 +208,15 @@ function exec_ingress_gateway_api {
   _make_manifest "$_in_template" > "$_in_manifest"
   _make_manifest "$_te_template" > "$_te_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
-  --context "$GSI_CONTEXT"                                                     \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
+  --context "$KSA_CONTEXT"                                                     \
   -f "$_pa_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
-  --context "$GSI_CONTEXT"                                                     \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
+  --context "$KSA_CONTEXT"                                                     \
   -f "$_in_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
-  --context "$GSI_CONTEXT"                                                     \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
+  --context "$KSA_CONTEXT"                                                     \
   -f "$_te_manifest"
 }

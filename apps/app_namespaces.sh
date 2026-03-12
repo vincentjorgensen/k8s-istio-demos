@@ -3,8 +3,8 @@ function app_init_namespaces {
   $ITER_MC exec_namespaces
 
   if $GME_ENABLED; then
-    echo '#' "GME is enabled, creating namespace $GME__NAMESPACE on mgmt server $GSI_MGMT_CLUSTER"
-    create_namespace "$GSI_MGMT_CONTEXT" "$GME_NAMESPACE"
+    echo '#' "GME is enabled, creating namespace $GME__NAMESPACE on mgmt server $KSA_MGMT_CLUSTER"
+    create_namespace "$KSA_MGMT_CONTEXT" "$GME_NAMESPACE"
   fi
 }
 
@@ -15,7 +15,7 @@ function exec_namespaces {
       # shellcheck disable=SC2116
       if [[ -n "$(eval echo '$'"$(echo "${enabled%%_ENABLED}_NAMESPACE")")" ]]; then
         echo '#' "${enabled%%_ENABLED} is enabled, creating namespace $(eval echo '$'"${enabled%%_ENABLED}_NAMESPACE")"
-        create_namespace "$GSI_CONTEXT" "$(eval echo '$'"$(echo "${enabled%%_ENABLED}_NAMESPACE")")"
+        create_namespace "$KSA_CONTEXT" "$(eval echo '$'"$(echo "${enabled%%_ENABLED}_NAMESPACE")")"
       fi
     fi
   done
@@ -27,7 +27,7 @@ function create_namespace {
   _namespace=$2
 
   if ! _namespace_exists "$_context" "$_namespace"; then
-    $DRY_RUN kubectl "${GSI_MODE/apply/create}" namespace "$_namespace"          \
+    $DRY_RUN kubectl "${KSA_MODE/apply/create}" namespace "$_namespace"          \
     --context "$_context"
   fi
 }

@@ -6,9 +6,9 @@ function app_init_cilium {
 }
 
 function exec_cilium {
-  local _manifest="$MANIFESTS/helm.cilium.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.cilium.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES/helm.cilium.yaml.j2"
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   local _k8s_svc_host _k8s_svc_port
   _k8s_svc_host=$(
@@ -37,13 +37,13 @@ function exec_cilium {
   if is_create_mode; then
     $DRY_RUN helm upgrade -i cilium cilium/cilium                              \
     --version "$CILIUM_VER"                                                    \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$KUBE_SYSTEM_NAMESPACE"                                       \
     --values "$_manifest"                                                      \
     --wait
   else
     $DRY_RUN helm uninstall cilium                                             \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$KUBE_SYSTEM_NAMESPACE"                                       \
     --wait
   fi

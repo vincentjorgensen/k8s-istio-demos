@@ -12,23 +12,23 @@ function app_init_helloworld {
 }
 
 function exec_helloworld {
-  local _manifest="$MANIFESTS/helloworld.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helloworld.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/helloworld.manifest.yaml.j2
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   _label_ns_for_istio "$HELLOWORLD_NAMESPACE"
 
   _make_manifest "$_template" > "$_manifest"
   _apply_manifest "$_manifest"
 
-  _wait_for_pods "$GSI_CONTEXT" "$HELLOWORLD_NAMESPACE" helloworld
+  _wait_for_pods "$KSA_CONTEXT" "$HELLOWORLD_NAMESPACE" helloworld
 }
 
 function exec_remote_helloworld {
-  local _manifest="$MANIFESTS/remote-helloworld.backend.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/remote-helloworld.backend.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/gateway-api/remote-hellowworld.backend.manifest.yaml.j2
 
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   _remote_helloworld_address=$(docker inspect helloworld | jq -r '.[].NetworkSettings.Networks."'"$DOCKER_NETWORK"'".IPAddress')
   _remote_helloworld_port=$(docker inspect helloworld | jq -r '.[].Config.Env[]|select(contains("SERVER_PORT"))'|awk -F= '{print $2}')
@@ -84,7 +84,7 @@ function exec_helloworld_routing {
 
   if $REMOTE_HELLOWORLD_ENABLED; then
     if $GATEWAY_API_ENABLED; then
-      local _manifest="$MANIFESTS/httproute.remote-helloworld.${GSI_CLUSTER}.yaml"
+      local _manifest="$MANIFESTS/httproute.remote-helloworld.${KSA_CLUSTER}.yaml"
       local _template="$TEMPLATES"/gateway-api/httproute.remote-helloworld.manifest.yaml.j2
       
       _make_manifest "$_template" > "$_manifest"

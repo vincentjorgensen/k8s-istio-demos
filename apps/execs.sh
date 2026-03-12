@@ -3,7 +3,7 @@
 # execs.sh
 #
 # like installs.sh, but every function takes care of its own destructor if
-# GSI_MODE is set to "delete"
+# KSA_MODE is set to "delete"
 ###############################################################################
 function exec_tls_cert_secret {
   local _cluster _namespace _secret_name _context
@@ -25,14 +25,14 @@ function exec_tls_cert_secret {
   [[ -z $_context ]] && _context="$_cluster"
 
   if is_create_mode; then
-    $DRY_RUN kubectl "$GSI_MODE" secret tls "$_secret_name"                   \
-    --context "$GSI_CONTEXT"                                                  \
+    $DRY_RUN kubectl "$KSA_MODE" secret tls "$_secret_name"                   \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$_namespace"                                                 \
     --cert="${CERTS}"/"${_cluster}"/ca-cert.pem                               \
     --key="${CERTS}"/"${_cluster}"/ca-key.pem
   else
-    $DRY_RUN kubectl "$GSI_MODE" secret "$_secret_name"                       \
-    --context "$GSI_CONTEXT"                                                  \
+    $DRY_RUN kubectl "$KSA_MODE" secret "$_secret_name"                       \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$_namespace"
   fi
 }
@@ -49,9 +49,9 @@ function exec_issuer_ingress_gateways {
 }
 
 function exec_issuer_istio_ingress_gateway {
-  create_issuer -m "$GSI_APP_SERVICE_NAME"                                    \
-                -n "$GSI_APP_SERVICE_NAMESPACE"                               \
-                -s "$GSI_APP_GATEWAY_SECRET"                                  \
+  create_issuer -m "$KSA_APP_SERVICE_NAME"                                    \
+                -n "$KSA_APP_SERVICE_NAMESPACE"                               \
+                -s "$KSA_APP_GATEWAY_SECRET"                                  \
                 -c "US"                                                       \
                 -l "Sunnyvale"                                                \
                 -o "Solo IO"                                                  \

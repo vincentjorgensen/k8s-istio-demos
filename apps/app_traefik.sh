@@ -8,7 +8,7 @@ function app_init_traefik {
 }
 
 function exec_traefik {
-  local _manifest="$MANIFESTS/helm.traefik.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.traefik.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/traefik/helm.traefik.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -17,14 +17,14 @@ function exec_traefik {
     $DRY_RUN helm upgrade --install                                            \
              traefik "$TRAEFIK_HELM_REPO/traefik"                              \
     --version "$TRAEFIK_VER"                                                   \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$TRAEFIK_NAMESPACE"                                           \
     --create-namespace                                                         \
     --values "$_manifest"                                                      \
     --wait
   else 
     $DRY_RUN helm uninstall traefik                                            \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$TRAEFIK_NAMESPACE"
   fi
 }

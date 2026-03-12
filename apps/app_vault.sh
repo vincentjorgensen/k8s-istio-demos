@@ -9,7 +9,7 @@ function app_init_vault {
 }
 
 function exec_vault {
-  local _manifest="$MANIFESTS/helm.vault.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.vault.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/helm.vault.yaml.j2
 
   if is_create_mode; then
@@ -17,13 +17,13 @@ function exec_vault {
 
     $DRY_RUN helm upgrade --install vault hashicorp/vault                      \
     --version "${VAULT_VER}"                                                   \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$VAULT_NAMESPACE"                                             \
     --create-namespace                                                         \
     --values "$_manifest"                                                      \
     --wait
 
-    _wait_for_pods_running "$GSI_CONTEXT" "$VAULT_NAMESPACE" "vault"
+    _wait_for_pods_running "$KSA_CONTEXT" "$VAULT_NAMESPACE" "vault"
 
     exec_vault_initialize
     exec_vault_unseal
@@ -31,17 +31,17 @@ function exec_vault {
     exec_vault_enable_secrets_engine
   else
     $DRY_RUN helm uninstall vault                                              \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$VAULT_NAMESPACE"
   fi
 }
 
 function exec_vault_initialize {
-  local _vault_keys="$MANIFESTS/vault.keys.${GSI_CLUSTER}.yaml"
+  local _vault_keys="$MANIFESTS/vault.keys.${KSA_CLUSTER}.yaml"
 
   if is_create_mode; then
     $DRY_RUN kubectl exec vault-0                                              \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$VAULT_NAMESPACE"                                             \
     --stdin=false                                                              \
     --tty=false                                                                \
@@ -53,7 +53,7 @@ function exec_vault_initialize {
 }
 
 function exec_vault_unseal {
-  local _vault_keys="$MANIFESTS/vault.keys.${GSI_CLUSTER}.yaml"
+  local _vault_keys="$MANIFESTS/vault.keys.${KSA_CLUSTER}.yaml"
   local _key1 _key2 _key3
 
   _key1=$(grep 'Unseal Key 1' "$_vault_keys" | awk -F': ' '{print $2}')
@@ -63,26 +63,26 @@ function exec_vault_unseal {
   if is_create_mode; then
     for key in "$_key1" "$_key2" "$_key3"; do
       $DRY_RUN kubectl exec vault-0                                            \
-      --context "$GSI_CONTEXT"                                                 \
+      --context "$KSA_CONTEXT"                                                 \
       --namespace "$VAULT_NAMESPACE"                                           \
       --stdin=false                                                            \
       --tty=false                                                              \
       -- vault operator unseal "$key"
     done
 
-    _wait_for_pods "$GSI_CONTEXT" "$VAULT_NAMESPACE" "vault"
+    _wait_for_pods "$KSA_CONTEXT" "$VAULT_NAMESPACE" "vault"
   fi
 }
 
 function exec_vault_login {
-  local _vault_keys="$MANIFESTS/vault.keys.${GSI_CLUSTER}.yaml"
+  local _vault_keys="$MANIFESTS/vault.keys.${KSA_CLUSTER}.yaml"
   local _root_token
 
   _root_token=$(grep 'Initial Root Token' "$_vault_keys" | awk -F': ' '{print $2}')
 
   if is_create_mode; then
     $DRY_RUN kubectl exec vault-0                                              \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$VAULT_NAMESPACE"                                             \
     --stdin=false                                                              \
     --tty=false                                                                \
@@ -93,7 +93,7 @@ function exec_vault_login {
 function exec_vault_enable_secrets_engine {
   if is_create_mode; then
     $DRY_RUN kubectl exec vault-0                                              \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$VAULT_NAMESPACE"                                             \
     --stdin=false                                                              \
     --tty=false                                                                \

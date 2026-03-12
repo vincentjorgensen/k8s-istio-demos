@@ -9,19 +9,19 @@ function app_init_cert_manager {
 function exec_cert_manager_secrets {
   if is_create_mode; then
     $DRY_RUN kubectl create secret generic "$CERT_MANAGER_INGRESS_SECRET"      \
-    --context "$GSI_CONTEXT"                                                   \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$CERT_MANAGER_NAMESPACE"                                      \
     --from-file=tls.crt="$CERT_MANAGER_CERTS"/root-cert.pem                    \
     --from-file=tls.key="$CERT_MANAGER_CERTS"/root-key.pem
   else
-    $DRY_RUN kubectl "$GSI_MODE" secret "$CERT_MANAGER_SECRET"                 \
-    --context "$GSI_CONTEXT"                                                   \
+    $DRY_RUN kubectl "$KSA_MODE" secret "$CERT_MANAGER_SECRET"                 \
+    --context "$KSA_CONTEXT"                                                   \
     --namespace "$CERT_MANAGER_NAMESPACE"
   fi
 }
 
 function exec_cert_manager {
-  local _manifest="$MANIFESTS/helm.cert-manager.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/helm.cert-manager.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/cert-manager/helm.values.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -30,20 +30,20 @@ function exec_cert_manager {
 
     $DRY_RUN helm upgrade --install cert-manager "$CERT_MANAGER_HELM_REPO"     \
     --version "$CERT_MANAGER_VER"                                              \
-    --kube-context="$GSI_CONTEXT"                                              \
+    --kube-context="$KSA_CONTEXT"                                              \
     --namespace "$CERT_MANAGER_NAMESPACE"                                      \
     --create-namespace                                                         \
     --values "$_manifest"                                                      \
     --wait
   else 
     $DRY_RUN helm uninstall cert-manager                                       \
-    --kube-context="$GSI_CONTEXT"                                             \
+    --kube-context="$KSA_CONTEXT"                                             \
     --namespace "$CERT_MANAGER_NAMESPACE"
   fi
 
   if is_create_mode; then
     $DRY_RUN kubectl wait                                                     \
-    --context="$GSI_CONTEXT"                                                  \
+    --context="$KSA_CONTEXT"                                                  \
     --namespace "$CERT_MANAGER_NAMESPACE"                                     \
     --for=condition=Ready pods --all
   fi
@@ -51,7 +51,7 @@ function exec_cert_manager {
 
 function exec_cert_manager_ingress_issuer {
 
-  local _manifest="$MANIFESTS/cert-manager.issuer.ingress.manifest${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/cert-manager.issuer.ingress.manifest${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/cert-manager/issuer.ingress.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -60,7 +60,7 @@ function exec_cert_manager_ingress_issuer {
 
 function exec_cert_manager_ingress_certificate {
 
-  local _manifest="$MANIFESTS/cert-manager.certificate.ingress.manifest${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/cert-manager.certificate.ingress.manifest${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/cert-manager/certificate.ingress.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -68,7 +68,7 @@ function exec_cert_manager_ingress_certificate {
 }
 
 function exec_cert_manager_cluster_issuer {
-  local _manifest="$MANIFESTS/cert-manager.cluster_issuer.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/cert-manager.cluster_issuer.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/cert-manager/cluster_issuer.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
@@ -100,9 +100,9 @@ function create_cert_manager_issuer {
     esac
   done
 
-  local _manifest="$MANIFESTS/cert-manager/issuer.${_name}.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/cert-manager/issuer.${_name}.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/cert-manager/issuer.manifest.yaml.j2
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   jinja2                                                                      \
          -D serial_no="$(date +%Y%m%d)"                                       \
@@ -121,7 +121,7 @@ function create_cert_manager_issuer {
          "$_template"                                                         \
     > "$_manifest"
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                \
-  --context "$GSI_CONTEXT"                                                    \
+  $DRY_RUN kubectl "$KSA_MODE"                                                \
+  --context "$KSA_CONTEXT"                                                    \
   -f "$_manifest" 
 }

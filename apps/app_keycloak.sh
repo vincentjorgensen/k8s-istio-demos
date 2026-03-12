@@ -7,12 +7,12 @@ function app_init_keycloak {
   fi
 }
 function exec_keycloak {
-  local _manifest="$MANIFESTS/keycloak.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/keycloak.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/keycloak.manifest.yaml.j2
 
   _make_manifest "$_template" > "$_manifest"
   _apply_manifest "$_manifest"
-  _wait_for_pods "$GSI_CONTEXT" "$KEYCLOAK_NAMESPACE" keycloak
+  _wait_for_pods "$KSA_CONTEXT" "$KEYCLOAK_NAMESPACE" keycloak
 }
 
 function set_keycloak_token_client_and_secret {
@@ -46,7 +46,7 @@ function set_keycloak_token_client_and_secret {
 
 function exec_initialize_keycloak {
   KEYCLOAK_ENDPOINT=$(kubectl get service keycloak                            \
-    --context "$GSI_CONTEXT"                                                  \
+    --context "$KSA_CONTEXT"                                                  \
     --namespace "$KEYCLOAK_NAMESPACE"                                         \
     -o=jsonpath="{.status.loadBalancer.ingress[0]['hostname','ip']}"):8080
 ###  KEYCLOAK_HOST=$(echo "${KEYCLOAK_ENDPOINT}" | cut -d: -f1)
@@ -82,9 +82,9 @@ function exec_initialize_keycloak {
 
 function create_keycloak_secret {
   local _namespace=$1
-  local _manifest="$MANIFESTS/secret.keycloak.${_namespace}.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/secret.keycloak.${_namespace}.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/secret.keycloak.manifest.yaml.j2
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   ### set_keycloak_token_client_and_secret # sets KEYCLOAK_TOKEN, KEYCLOAK_CLIENT, KEYCLOAK_SECRET, and KEYCLOAK_ID
 
@@ -114,9 +114,9 @@ function create_keycloak_extauth_auth_config {
         _service_port=$OPTARG ;;
     esac
   done
-  local _manifest="$MANIFESTS/auth_config.oauth.${GSI_CLUSTER}.yaml"
+  local _manifest="$MANIFESTS/auth_config.oauth.${KSA_CLUSTER}.yaml"
   local _template="$TEMPLATES"/auth_config.oauth.manifest.yaml.j2
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   jinja2                                                                      \
          -D client_id="$KEYCLOAK_CLIENT"                                      \
