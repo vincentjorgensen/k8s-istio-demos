@@ -50,7 +50,10 @@ ksa_play c1_traefik
 will deploy a Traefik ingress gateway in Gateway API to the cluster with the
 sample `helloworld` app behind it. To test if the gateway works, try:
 ```bash
-curl -H 'Host: helloworld.example.com' $(kubectl --namespace ingress-gateways get svc traefik -ojsonpath='{.status.loadBalancer.ingress[].ip}')
+INGRESS_GATEWAY_IP=kubectl --namespace ingress-gateways                        \
+                           get svc traefik                                     \
+                           -ojsonpath='{.status.loadBalancer.ingress[].ip}'
+curl -H 'Host: helloworld.example.com' $INGRESS_GATEWAY_IP
 ```
 ```text
 Hello, world!
