@@ -432,37 +432,37 @@ export GLOOUI_SERVICE_TYPE=${GLOOUI_SERVICE_TYPE:-LoadBalancer}
 export GME_FLAG GME_MGMT_AGENT_FLAG GLOOUI_FLAG
 
 ###############################################################################
-# GSI mode variables
+# KSA mode variables
 ###############################################################################
 #-------------------------------------------------------------------------------
 # Current cluster identifiers
 #-------------------------------------------------------------------------------
-export GSI_MODE GSI_ISTIO
-export GSI_CLUSTER GSI_CONTEXT GSI_NETWORK 
-export GSI_REMOTE_CLUSTER GSI_REMOTE_CONTEXT GSI_REMOTE_NETWORK
-export GSI_MGMT_CLUSTER GSI_MGMT_CONTEXT GSI_MGMT_NETWORK
+export KSA_MODE KSA_ISTIO
+export KSA_CLUSTER KSA_CONTEXT KSA_NETWORK 
+export KSA_REMOTE_CLUSTER KSA_REMOTE_CONTEXT KSA_REMOTE_NETWORK
+export KSA_MGMT_CLUSTER KSA_MGMT_CONTEXT KSA_MGMT_NETWORK
 
 #-------------------------------------------------------------------------------
-# GSI runtime flags
+# KSA runtime flags
 #-------------------------------------------------------------------------------
-export DEFAULT_GSI_MODE=apply # create | apply | delete
-export GSI_MODE=${GSI_MODE:-$DEFAULT_GSI_MODE}
+export DEFAULT_KSA_MODE=apply # create | apply | delete
+export KSA_MODE=${KSA_MODE:-$DEFAULT_KSA_MODE}
 export DRY_RUN=${DRY_RUN:-} # Testing and generating reproducible plans
 
-function set_gsi_mode {
-  export GSI_MODE=${1:-$DEFAULT_GSI_MODE}
+function set_ksa_mode {
+  export KSA_MODE=${1:-$DEFAULT_KSA_MODE}
 }
 
 function set_istio {
-  if [[ -z "$GSI_ISTIO" ]]; then
-    GSI_ISTIO=$ISTIO_DEFAULT
+  if [[ -z "$KSA_ISTIO" ]]; then
+    KSA_ISTIO=$ISTIO_DEFAULT
   fi
-  ISTIO_VER=$(eval echo \$ISTIO_VER_"${GSI_ISTIO//.}")
-  ISTIO_REPO=$(eval echo \$ISTIO_REPO_"${GSI_ISTIO//.}")
-  HELM_REPO=$(eval echo \$HELM_REPO_"${GSI_ISTIO//.}")
-  ISTIO_FLAVOR=$(eval echo \$ISTIO_FLAVOR_"${GSI_ISTIO//.}")
-  ISTIO_DISTRO=$(eval echo \$ISTIO_DISTRO_"${GSI_ISTIO//.}")
-  REVISION=$(eval echo \$REVISION_"${GSI_ISTIO//.}")
+  ISTIO_VER=$(eval echo \$ISTIO_VER_"${KSA_ISTIO//.}")
+  ISTIO_REPO=$(eval echo \$ISTIO_REPO_"${KSA_ISTIO//.}")
+  HELM_REPO=$(eval echo \$HELM_REPO_"${KSA_ISTIO//.}")
+  ISTIO_FLAVOR=$(eval echo \$ISTIO_FLAVOR_"${KSA_ISTIO//.}")
+  ISTIO_DISTRO=$(eval echo \$ISTIO_DISTRO_"${KSA_ISTIO//.}")
+  REVISION=$(eval echo \$REVISION_"${KSA_ISTIO//.}")
 }
 
 function set_gme {
@@ -472,20 +472,20 @@ function set_gme {
   fi
 }
 
-function gsi_set_defaults {
+function ksa_set_defaults {
   set_istio
   set_gme
 }
 
 function is_create_mode {
-  if [[ $GSI_MODE =~ (create|apply) ]]; then
+  if [[ $KSA_MODE =~ (create|apply) ]]; then
     return 0
   else
     return 1
   fi
 }
 
-function gsi_reset {
+function ksa_reset {
   UTAG=""
   unset "$(set | gr '^GATEWAY_API_EXP_CRDS_APPLIED_' | awk -F= '{print $1}')"
   unset "$(set | gr '^GATEWAY_API_CRDS_APPLIED_' | awk -F= '{print $1}')"
@@ -498,13 +498,13 @@ function set_utag {
   MANIFESTS="$(dirname "$0")"/manifests/$UTAG
 }
 
-function gsi_init {
+function ksa_init {
   set_utag "$1"
   mkdir -p "$MANIFESTS"
   echo "export MANIFESTS=$MANIFESTS"
 
-  eval unset GATEWAY_API_CRDS_APPLIED_"${GSI_CLUSTER//-/_}"
-  eval unset GATEWAY_API_CRDS_APPLIED_"${GSI_REMOTE_CLUSTER//-/_}"
+  eval unset GATEWAY_API_CRDS_APPLIED_"${KSA_CLUSTER//-/_}"
+  eval unset GATEWAY_API_CRDS_APPLIED_"${KSA_REMOTE_CLUSTER//-/_}"
 
   if [[ -e $INFRAS/infra_${UTAG}.sh ]]; then
     # shellcheck disable=SC1090
@@ -514,7 +514,7 @@ function gsi_init {
   #############################################################################
   # Set defaults based on pre-config
   #############################################################################
-  gsi_set_defaults
+  ksa_set_defaults
 
   #############################################################################
   # Support infrastructure which affects later fields
@@ -525,7 +525,7 @@ function gsi_init {
   if $GME_ENABLED; then
     GME_FLAG=enabled  
     echo '#' GME is enabled
-    if [[ $GSI_MGMT_CLUSTER == "$GSI_CLUSTER" ]]; then
+    if [[ $KSA_MGMT_CLUSTER == "$KSA_CLUSTER" ]]; then
       GME_MGMT_AGENT_ENABLED=true
     fi
     if $GME_MGMT_AGENT_ENABLED; then
@@ -810,28 +810,28 @@ function _get_k8s_zones {
   echo "$_zones"
 }
 
-function gsi_cluster_swap {
-  export NEW_GSI_REMOTE_CLUSTER=$GSI_CLUSTER
-  export NEW_GSI_REMOTE_CONTEXT=$GSI_CONTEXT
-  export NEW_GSI_REMOTE_NETWORK=$GSI_NETWORK
+function ksa_cluster_swap {
+  export NEW_KSA_REMOTE_CLUSTER=$KSA_CLUSTER
+  export NEW_KSA_REMOTE_CONTEXT=$KSA_CONTEXT
+  export NEW_KSA_REMOTE_NETWORK=$KSA_NETWORK
   export NEW_REMOTE_AWS_REGION=$AWS_REGION
   export NEW_REMOTE_TRUST_DOMAIN=$TRUST_DOMAIN
   
-  export NEW_GSI_LOCAL_CLUSTER=$GSI_REMOTE_CLUSTER
-  export NEW_GSI_LOCAL_CONTEXT=$GSI_REMOTE_CONTEXT
-  export NEW_GSI_LOCAL_NETWORK=$GSI_REMOTE_NETWORK
+  export NEW_KSA_LOCAL_CLUSTER=$KSA_REMOTE_CLUSTER
+  export NEW_KSA_LOCAL_CONTEXT=$KSA_REMOTE_CONTEXT
+  export NEW_KSA_LOCAL_NETWORK=$KSA_REMOTE_NETWORK
   export NEW_LOCAL_AWS_REGION=$REMOTE_AWS_REGION
   export NEW_LOCAL_TRUST_DOMAIN=${REMOTE_TRUST_DOMAIN:-$TRUST_DOMAIN}
 
-  export GSI_CLUSTER=$NEW_GSI_LOCAL_CLUSTER
-  export GSI_CONTEXT=$NEW_GSI_LOCAL_CONTEXT
-  export GSI_NETWORK=$NEW_GSI_LOCAL_NETWORK
+  export KSA_CLUSTER=$NEW_KSA_LOCAL_CLUSTER
+  export KSA_CONTEXT=$NEW_KSA_LOCAL_CONTEXT
+  export KSA_NETWORK=$NEW_KSA_LOCAL_NETWORK
   export AWS_REGION=$NEW_LOCAL_AWS_REGION
   export TRUST_DOMAIN=$NEW_LOCAL_TRUST_DOMAIN
 
-  export GSI_REMOTE_CLUSTER=$NEW_GSI_REMOTE_CLUSTER
-  export GSI_REMOTE_CONTEXT=$NEW_GSI_REMOTE_CONTEXT
-  export GSI_REMOTE_NETWORK=$NEW_GSI_REMOTE_NETWORK
+  export KSA_REMOTE_CLUSTER=$NEW_KSA_REMOTE_CLUSTER
+  export KSA_REMOTE_CONTEXT=$NEW_KSA_REMOTE_CONTEXT
+  export KSA_REMOTE_NETWORK=$NEW_KSA_REMOTE_NETWORK
   export REMOTE_AWS_REGION=$NEW_REMOTE_AWS_REGION
   export REMOTE_TRUST_DOMAIN=$NEW_REMOTE_TRUST_DOMAIN
 }
@@ -886,7 +886,7 @@ function _label_namespace {
   $DRY_RUN kubectl label namespace                                             \
   "$_namespace"                                                                \
   "${_key}${_k_label}"                                                         \
-  --context "$GSI_CONTEXT" --overwrite
+  --context "$KSA_CONTEXT" --overwrite
 }
 
 function _label_ns_for_istio {
@@ -902,7 +902,7 @@ function _label_ns_for_istio {
     $DRY_RUN kubectl label namespace                                           \
     "$_namespace"                                                              \
     "istio.io/dataplane-mode${_k_label}"                                       \
-    --context "$GSI_CONTEXT" --overwrite
+    --context "$KSA_CONTEXT" --overwrite
   fi
 
   if $SIDECAR_ENABLED; then
@@ -918,7 +918,7 @@ function _label_ns_for_istio {
       _k_label="-"
     fi
     $DRY_RUN kubectl label namespace "$_namespace" "${_k_key}${_k_label}"      \
-    --context "$GSI_CONTEXT" --overwrite
+    --context "$KSA_CONTEXT" --overwrite
   fi
 }
 
@@ -935,7 +935,7 @@ function _make_manifest {
   done
 
   local _template=$1
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
   cat "$_j2" >> "$_m_j2"
 
@@ -947,8 +947,8 @@ function _make_manifest {
 function _apply_manifest {
   local _manifest=$1
 
-  $DRY_RUN kubectl "$GSI_MODE"                                                 \
-  --context "$GSI_CONTEXT"                                                     \
+  $DRY_RUN kubectl "$KSA_MODE"                                                 \
+  --context "$KSA_CONTEXT"                                                     \
   -f "$_manifest"
 }
 
@@ -958,13 +958,13 @@ function _j2_remote_clusters {
 
   echo "remote_clusters:" >> "$_r_j2"
 
-  for _cluster in $(env|ggrep GSI_CLUSTER|sed -e 's/GSI_CLUSTER\(.*\)=.*/\1/'); do
-    if ! [[ "$GSI_CLUSTER" == "$(eval echo '$'GSI_CLUSTER"${_cluster}")" ]]; then
+  for _cluster in $(env|ggrep KSA_CLUSTER|sed -e 's/KSA_CLUSTER\(.*\)=.*/\1/'); do
+    if ! [[ "$KSA_CLUSTER" == "$(eval echo '$'KSA_CLUSTER"${_cluster}")" ]]; then
       cat <<EOF >>"$_r_j2"
-- name: $(eval echo '$'GSI_CLUSTER"${_cluster}")
-  network: $(eval echo '$'GSI_NETWORK"${_cluster}")
-  context: $(eval echo '$'GSI_CONTEXT"${_cluster}")
-  trust_domain: $(eval echo '$'GSI_TRUST_DOMAIN"${_cluster}")
+- name: $(eval echo '$'KSA_CLUSTER"${_cluster}")
+  network: $(eval echo '$'KSA_NETWORK"${_cluster}")
+  context: $(eval echo '$'KSA_CONTEXT"${_cluster}")
+  trust_domain: $(eval echo '$'KSA_TRUST_DOMAIN"${_cluster}")
 EOF
     fi
   done
@@ -973,15 +973,15 @@ EOF
 }
 
 function _get_j2 {
-  echo "$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  echo "$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 }
 
 function _jinja2_values {
   local _region _zones
-  local _j2="$MANIFESTS"/jinja2_globals."$GSI_CLUSTER".yaml
+  local _j2="$MANIFESTS"/jinja2_globals."$KSA_CLUSTER".yaml
 
-  _region=$(_get_k8s_region "$GSI_CONTEXT")
-  _zones=$(_get_k8s_zones "$GSI_CONTEXT")
+  _region=$(_get_k8s_region "$KSA_CONTEXT")
+  _zones=$(_get_k8s_zones "$KSA_CONTEXT")
 
   HW_SVC_VER=$((HW_SVC_VER+1))
 
@@ -996,8 +996,8 @@ function _jinja2_values {
   done <<< "$_zones"
 
   jinja2                                                                       \
-         -D cluster="$GSI_CLUSTER"                                             \
-         -D network="$GSI_NETWORK"                                             \
+         -D cluster="$KSA_CLUSTER"                                             \
+         -D network="$KSA_NETWORK"                                             \
          -D trust_domain="$TRUST_DOMAIN"                                       \
          -D ambient_enabled="$AMBIENT_FLAG"                                    \
          -D aws_enabled="$AWS_FLAG"                                            \
@@ -1036,7 +1036,7 @@ function _jinja2_values {
          -D glooui_service_type="$GLOOUI_SERVICE_TYPE"                         \
          -D gme_insights_enabled="$GME_ANALYZER_ENABLED"                       \
          -D gme_mgmt_agent_enabled="$GME_MGMT_AGENT_FLAG"                      \
-         -D gme_mgmt_cluster="$GSI_MGMT_CLUSTER"                               \
+         -D gme_mgmt_cluster="$KSA_MGMT_CLUSTER"                               \
          -D gme_mgmt_service_type="$GME_MGMT_SERVICE_TYPE"                     \
          -D gme_namespace="$GME_NAMESPACE"                                     \
          -D gme_secret_token="$GME_SECRET_TOKEN"                               \
